@@ -1,0 +1,10 @@
+# exclude object files
+obj/*.o
+# exclude binary program
+rentacar
+rentacar.exe
+# exclude data directory content
+data/*
+# exclude logs in .vscode directory
+.vscode/*.log
+
