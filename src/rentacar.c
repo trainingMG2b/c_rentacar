@@ -49,7 +49,7 @@
 
 
 // Program entry point
-int main( int argc, char *argv[] ) {
+int _main( int argc, char *argv[] ) {
 
 	int rc = 0;
 	int opt = 0;
