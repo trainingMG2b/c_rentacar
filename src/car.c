@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
 
 #include "rentacar.h"
 #include "car.h"
@@ -16,12 +18,8 @@
 //    Factorize the sprintf message calls with defines and variable arguments
 //
 
+struct Car * parseJsonAsCar( const char * jsonText, int * mask ) {
 
-int carOperation( char operation, const char * jsonText ) {
-
-    int rc = 0;
-    char * msg = calloc( MAX_MESSAGE_LEN, sizeof( char ) );
-    
     const cJSON *brand = NULL;
     const cJSON *model = NULL;
     const cJSON *year = NULL;
@@ -29,97 +27,104 @@ int carOperation( char operation, const char * jsonText ) {
     const cJSON *numberPlate = NULL;
     const cJSON *carId = NULL;
 
-    // BEGIN - Factorize
-    int mask = 0;
+    *mask = 0;
     cJSON *carJson = cJSON_Parse( jsonText );
 
     if ( carJson == NULL ) {
 
         cJSON_Delete( carJson );
-
-        sprintf( msg, "{ \"message\": \"Unable to parse json text\", \"json\": %s, \"status\": %d }", jsonText, SC_INTERNAL_ERROR );
-        messageErr( msg );
-        free( msg );
-
-        return rc;
+        return NULL;
     }
 
-    struct Car car;
-    car.carId = 0;
+    struct Car * car = calloc( 1, sizeof( struct Car ) );
+
+    car->carId = 0;
 
     brand = cJSON_GetObjectItemCaseSensitive( carJson, "brand" );
 
     if ( brand != NULL && cJSON_IsString( brand ) && ( brand->valuestring != NULL ) ) {
 
-        strncpy( car.brand, brand->valuestring, BRAND_LEN );
-        car.brand[ BRAND_LEN - 1 ] = 0x0;
-        mask |= BRAND_FIELD;
+        strncpy( car->brand, brand->valuestring, BRAND_LEN );
+        car->brand[ BRAND_LEN - 1 ] = 0x0;
+        *mask |= CAR_BRAND_FIELD;
     }
 
     model = cJSON_GetObjectItemCaseSensitive( carJson, "model" );
 
     if ( model != NULL && cJSON_IsString( model ) && ( model->valuestring != NULL ) ) {
 
-        strncpy( car.model, model->valuestring, MODEL_LEN );
-        car.model[ MODEL_LEN - 1 ] = 0x0;
-        mask |= MODEL_FIELD;
+        strncpy( car->model, model->valuestring, MODEL_LEN );
+        car->model[ MODEL_LEN - 1 ] = 0x0;
+        *mask |= CAR_MODEL_FIELD;
     }
 
     year = cJSON_GetObjectItemCaseSensitive( carJson, "year" );
 
     if ( year != NULL && cJSON_IsNumber( year ) ) {
 
-        car.year = year->valueint;
-        mask |= YEAR_FIELD;
+        car->year = year->valueint;
+        *mask |= CAR_YEAR_FIELD;
     }
 
     numberPlate = cJSON_GetObjectItemCaseSensitive( carJson, "numberPlate" );
 
     if ( numberPlate != NULL && cJSON_IsString( numberPlate ) && ( numberPlate->valuestring != NULL ) ) {
 
-        strncpy( car.numberPlate, numberPlate->valuestring, NUMBER_PLATE_LEN );
-        car.numberPlate[ NUMBER_PLATE_LEN - 1 ] = 0x0;
-        mask |= NUMBER_PLATE_FIELD;
+        strncpy( car->numberPlate, numberPlate->valuestring, NUMBER_PLATE_LEN );
+        car->numberPlate[ NUMBER_PLATE_LEN - 1 ] = 0x0;
+        *mask |= CAR_NUMBER_PLATE_FIELD;
     }
 
     active = cJSON_GetObjectItemCaseSensitive( carJson, "active" );
 
     if ( active != NULL && cJSON_IsBool( active ) ) {
 
-        car.active = active->valueint;
-        mask |= ACTIVE_FIELD;
+        car->active = active->valueint;
+        *mask |= CAR_ACTIVE_FIELD;
     }
 
     carId = cJSON_GetObjectItemCaseSensitive( carJson, "carId" );
 
     if ( carId != NULL && cJSON_IsNumber( carId ) ) {
 
-        car.carId = carId->valueint;
-        mask |= CAR_ID_FIELD;
+        car->carId = carId->valueint;
+        *mask |= CAR_ID_FIELD;
     }
-    // END - Factorize
 
+    cJSON_Delete( carJson );
+
+    return car;
+}
+
+int carOperation( char operation, const char * jsonText ) {
+
+    int rc = 0;
+    int mask = 0;
     int id = 0;
     struct Car * retrievedCar;
     char * carAsJson;
     char * carDesc;
- 
+
+    char * msg = calloc( MAX_MESSAGE_LEN, sizeof( char ) );
+
+    struct Car * car = parseJsonAsCar( jsonText, &mask );
+
     // Do operation
     switch ( operation ) {
 
         case CREATE_OPER:
-            if ( ! ( mask & BRAND_FIELD ) ||
-                ! ( mask & MODEL_FIELD ) ||
-                ! ( mask & YEAR_FIELD ) ||
-                ! ( mask & ACTIVE_FIELD ) ||
-                ! ( mask &  NUMBER_PLATE_FIELD ) ) {
+            if ( ! ( mask & CAR_BRAND_FIELD ) ||
+                ! ( mask & CAR_MODEL_FIELD ) ||
+                ! ( mask & CAR_YEAR_FIELD ) ||
+                ! ( mask & CAR_ACTIVE_FIELD ) ||
+                ! ( mask & CAR_NUMBER_PLATE_FIELD ) ) {
 
                 sprintf( msg, "{ \"message\": \"Car definition incomplete in input json\", \"status\": %d }", SC_BAD_REQUEST );
                 messageErr( msg );
                 break;
             }
 
-            id = createCar( &car );
+            id = createCar( car );
 
             if ( id <= 0 ) {
 
@@ -142,7 +147,7 @@ int carOperation( char operation, const char * jsonText ) {
             }
             else {
 
-                retrievedCar = retrieveCar( car.carId );
+                retrievedCar = retrieveCar( car->carId );
                 if ( retrievedCar != NULL ) {
 
                     rc = retrievedCar->carId;
@@ -154,7 +159,7 @@ int carOperation( char operation, const char * jsonText ) {
                 }
                 else {
 
-                    sprintf( msg, "{ \"message\": \"Car with carId = %d not found\", \"status\": %d }", car.carId, SC_NOT_FOUND );
+                    sprintf( msg, "{ \"message\": \"Car with carId = %d not found\", \"status\": %d }", car->carId, SC_NOT_FOUND );
                     messageErr( msg );
                 }
             }
@@ -168,10 +173,10 @@ int carOperation( char operation, const char * jsonText ) {
             }
             else {
                 
-                retrievedCar = retrieveCar( car.carId );
+                retrievedCar = retrieveCar( car->carId );
                 if ( retrievedCar != NULL ) {
 
-                    carCopyToConditional( &car, retrievedCar, mask );
+                    carCopyToConditional( car, retrievedCar, mask );
                     rc = updateCar( retrievedCar );
                     if ( rc ) {
                         
@@ -186,7 +191,7 @@ int carOperation( char operation, const char * jsonText ) {
                 }
                 else {
 
-                    sprintf( msg, "{ \"message\": \"Car with carId = %d not found\", \"status\": %d }", car.carId, SC_NOT_FOUND );
+                    sprintf( msg, "{ \"message\": \"Car with carId = %d not found\", \"status\": %d }", car->carId, SC_NOT_FOUND );
                     messageErr( msg );
                 }
             }
@@ -200,7 +205,7 @@ int carOperation( char operation, const char * jsonText ) {
             }
             else {
 
-                id = deleteCar( car.carId );
+                id = deleteCar( car->carId );
                 rc = id;
             }
             break;
@@ -211,7 +216,8 @@ int carOperation( char operation, const char * jsonText ) {
     }
 
     free( msg );
-    cJSON_Delete( carJson );
+    if ( car != NULL )
+        free( car );
 
     return rc;
 }
@@ -259,11 +265,112 @@ void carCopyToConditional( const struct Car * source, struct Car * dest, int mas
 
     if ( source != NULL && dest != NULL ) {
 
-        if ( mask & BRAND_FIELD ) strcpy( dest->brand, source->brand );
-        if ( mask & MODEL_FIELD ) strcpy( dest->model, source->model );
-        if ( mask & NUMBER_PLATE_FIELD ) strcpy( dest->numberPlate, source->numberPlate );
-        if ( mask & YEAR_FIELD ) dest->year = source->year;
-        if ( mask & ACTIVE_FIELD ) dest->active = source->active;
+        if ( mask & CAR_BRAND_FIELD ) strcpy( dest->brand, source->brand );
+        if ( mask & CAR_MODEL_FIELD ) strcpy( dest->model, source->model );
+        if ( mask & CAR_NUMBER_PLATE_FIELD ) strcpy( dest->numberPlate, source->numberPlate );
+        if ( mask & CAR_YEAR_FIELD ) dest->year = source->year;
+        if ( mask & CAR_ACTIVE_FIELD ) dest->active = source->active;
         if ( mask & CAR_ID_FIELD ) dest->carId = source->carId;
     }
+}
+
+// Validate a Car attributes
+// This is very >>>BASIC<<< car attributes checking. In real world scenarios, brand shoul 
+// be checked against a list of known brands, model from brand known models, number plate
+// shoud be checked against a regular expression (man 3 regcomp/regexec). 
+//
+// operation is either create or update
+// mask indicates which fields have been initialized (usually with a value from JSON)
+// car is the car to be validated
+bool validateCar( int operation, int mask, const struct Car * car, bool allFieldsMandatory ) {
+
+    switch ( operation ) {
+
+        case CAR_VALIDATE_CREATE_OPERATION:
+        case CAR_VALIDATE_UPDATE_OPERATION:
+            break;
+
+        default:
+            return false;
+    }
+
+    if ( car == NULL )
+        return false;
+
+    if ( allFieldsMandatory && mask != ALL_FIELDS )
+        return false;
+
+	time_t now = time( 0 );
+	struct tm tm = *gmtime( &now );
+    int currentYear = tm.tm_year + 1900;
+
+    switch ( operation ) {
+        
+        case CAR_VALIDATE_CREATE_OPERATION:
+            if ( ( mask & CAR_ID_FIELD ) != 0 )
+                return false;
+
+            if ( ( mask & CAR_ACTIVE_FIELD ) == 0 )
+                return false;
+
+            if ( ( mask & CAR_BRAND_FIELD ) == 0 ||
+                car->brand == NULL ||
+                car->brand[ BRAND_LEN - 1 ] != 0x0 ||
+                strlen( car->brand ) == 0 )
+                return false;
+                
+            if ( ( mask & CAR_MODEL_FIELD ) == 0 ||
+                car->model == NULL ||
+                car->model[ MODEL_LEN - 1 ] != 0x0 ||
+                strlen( car->model ) == 0 )
+                return false;
+
+            if ( ( mask & CAR_YEAR_FIELD ) == 0 ||
+                car->year < MIN_CAR_YEAR ||
+                car->year > currentYear + 1 )
+                return false;
+
+            if ( ( mask & CAR_NUMBER_PLATE_FIELD ) == 0 ||
+                car->numberPlate == NULL ||
+                car->numberPlate[ NUMBER_PLATE_LEN - 1 ] != 0x0 ||
+                strlen( car->numberPlate ) == 0 )
+                return false;
+
+            break;
+
+        case CAR_VALIDATE_UPDATE_OPERATION:
+            if ( ( mask & CAR_ID_FIELD ) == 0 )    
+                return false;
+
+            if ( ( mask & CAR_BRAND_FIELD ) != 0 && (
+                car->brand == NULL ||
+                car->brand[ BRAND_LEN - 1 ] != 0x0 ||
+                strlen( car->brand ) == 0 ) )
+                return false;
+                
+            if ( ( mask & CAR_MODEL_FIELD ) != 0 && (
+                car->model == NULL ||
+                car->model[ MODEL_LEN - 1 ] != 0x0 ||
+                strlen( car->model ) == 0 ) )
+                return false;
+
+            if ( ( mask & CAR_YEAR_FIELD ) != 0 && (
+                car->year < MIN_CAR_YEAR ||
+                car->year > currentYear + 1 ) )
+                return false;
+
+            if ( ( mask & CAR_NUMBER_PLATE_FIELD ) != 0 && (
+                car->numberPlate == NULL ||
+                car->numberPlate[ NUMBER_PLATE_LEN - 1 ] != 0x0 ||
+                strlen( car->numberPlate ) == 0 ) )
+                return false;
+
+            break;
+    
+        default:
+            return false;
+            break;
+    }
+    
+    return true;
 }
