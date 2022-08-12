@@ -13,6 +13,24 @@
 #define MAX_CLIENTS					30
 #define MAX_DATA_LENGTH				1024
 
+#define OPEN_SERVER_SOCKET_ERROR            "Error opening server socket"
+#define SERVER_SOCKET_CONFIG_ERROR			"Error seting server socket confixog"
+#define SERVER_SOCKET_BIND_ERROR			"Error binding server socket to port"
+#define SERVER_SOCKET_LISTEN_ERROR			"Error while listening on server socket port"
+#define SOCKET_SELECT_ERROR					"Error on socket select errorr"
+#define SERVER_SOCKET_ACCEPT_ERROR			"Error on socket accept"
+
+#define CNX_ABORTED_ON_GARBAGED_INPUT_ERROR "Garbaged input error, connexion aborted"
+#define CNX_ABORTED_ON_UNKNOWN_VERB_ERROR   "Unknown verb error, connexion aborted"
+
+#define SERVER_UP_MESSAGE					"Rentacar Server v0.1 \r\n"
+#define SERVER_WAITING_MSG					"Waiting for connections ..." 
+#define SERVER_WELCOME_MSG_SEND				"Welcome message sent successfully"
+#define CLIENT_ADDED_TO_LIST_OF_SOCKETS_MSG	"Adding to list of sockets as %d\n"
+#define CLIENT_DISCONNECTED_MSG				"Host disconnected, ip %s, port %d \n"
+#define NEW_CLIENT_CONNECTION_INFO          "New connection, socket fd is %d, ip is : %s, port : %d\n"
+#define SEND_GREETING_ERROR                 "send greeting message error"
+
 #define HTTP_1_DOT_1                "HTTP/1.1"
 
 #define UNDEFINED_VERB	0
@@ -31,30 +49,8 @@
 #define MAX_HEADER_NAME_LEN		64
 #define MAX_HEADER_VALUE_LEN	128
 
-#define OPEN_SERVER_SOCKET_ERROR            "Error opening server socket"
-#define SERVER_SOCKET_CONFIG_ERROR			"Error seting server socket confixog"
-#define SERVER_SOCKET_BIND_ERROR			"Error binding server socket to port"
-#define SERVER_SOCKET_LISTEN_ERROR			"Error while listening on server socket port"
-#define SOCKET_SELECT_ERROR					"Error on socket select errorr"
-#define SERVER_SOCKET_ACCEPT_ERROR			"Error on socket accept"
-
-#define CNX_ABORTED_ON_GARBAGED_INPUT_ERROR "Garbaged input error, connexion aborted"
-#define CNX_ABORTED_ON_UNKNOWN_VERB_ERROR   "Unknown verb error, connexion aborted"
-
-#define SERVER_UP_MESSAGE					"Rentacar Server v0.1 \r\n"
-#define SERVER_WAITING_MSG					"Waiting for connections ..." 
-#define SERVER_WELCOME_MSG_SEND				"Welcome message sent successfully"
-#define CLIENT_ADDED_TO_LIST_OF_SOCKETS_MSG	"Adding to list of sockets as %d\n"
-#define CLIENT_DISCONNECTED_MSG				"Host disconnected, ip %s, port %d \n"
-#define NEW_CLIENT_CONNECTION_INFO          "New connection, socket fd is %d, ip is : %s, port : %d\n"
-#define SEND_GREETING_ERROR                 "send greeting message error"
 #define EXECUTING_REQUEST_MSG               "executing request %s\n"
 #define WITH_JSON_MSG                       "with json = %s\n"
-
-#define DEBUG_VERB_MSG                      "verb = %s\n"
-#define DEBUG_PATH_MSG                      "path = %s\n"
-#define DEBUG_PROTOCOL_MSG                  "protocol = %s\n"
-#define DEBUG_HEADER_MSG                    "got header : name / value = %s / %s\n"
 
 #define HEADER_NAME_VALUE_SEPARATOR         ": "
 
@@ -91,6 +87,11 @@
 #define HTTP_TIME_FORMAT_STR "%a, %d %b %Y %H:%M:%S %Z"
 
 #define API_PATH_GET_CAR    "/cars/%d"
+
+#define DEBUG_VERB_MSG                      "verb = %s\n"
+#define DEBUG_PATH_MSG                      "path = %s\n"
+#define DEBUG_PROTOCOL_MSG                  "protocol = %s\n"
+#define DEBUG_HEADER_MSG                    "got header : name / value = %s / %s\n"
 
 #define ERROR_TYPE_NOT_ALLOWED_STR                  "/errors/not-allowed"
 #define ERROR_TYPE_NOT_FOUND_STR                    "/errors/not-found"

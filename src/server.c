@@ -196,7 +196,8 @@ int main( int argc, char *argv[] ) {
 						else if ( requestInProgress[ i ] ) {
 
 							// Trigger POST PUT PATCH verbs second stage procesing (JSON needed)
-							if ( request[ i ].verb == POST_VERB ) {
+							if ( request[ i ].verb == POST_VERB ||
+								request[ i ].verb == PATCH_VERB ) {
 
 								request[ i ].ready = true;
 							}
@@ -262,6 +263,7 @@ int _executeRequest( const int client, const int socket ) {
 			case GET_VERB:
 			case DELETE_VERB:
 			case POST_VERB:
+			case PATCH_VERB:
 				printf( EXECUTING_REQUEST_MSG, _prettyRequestName( request[ client ].verb ) );
 				break;
 			
@@ -371,6 +373,85 @@ int _executeRequest( const int client, const int socket ) {
 						HTTP_RC_500,
 						HTTP_RC_500_STR,
 						ERROR_DETAIL_INTERNAL_ERROR_STR,
+						request[ client ].path );
+			}
+
+			free( car );
+			break;
+
+		case PATCH_VERB:
+			carId = _parsePathForCarId( request[ client ].path );
+
+			if ( carId == 0 ) {
+				
+				_sendErrorResponse( 
+					socket,
+					ERROR_TYPE_BAD_REQUEST_STR,
+					ERROR_TITLE_BAD_REQUEST_STR,
+					HTTP_RC_400,
+					HTTP_RC_400_STR,
+					ERROR_DETAIL_BAD_REQUEST_STR,
+					request[ client ].path );
+				break;
+			}
+
+			car = parseJsonAsCar( request[ client ].json, &mask );
+
+			if ( carId != car->carId )
+				_sendErrorResponse( 
+					socket,
+					ERROR_TYPE_BAD_REQUEST_STR,
+					ERROR_TITLE_BAD_REQUEST_STR,
+					HTTP_RC_400,
+					HTTP_RC_400_STR,
+					ERROR_DETAIL_BAD_REQUEST_STR,
+					request[ client ].path );
+			else {
+
+				valid = validateCar( CAR_VALIDATE_UPDATE_OPERATION, mask, car, false );
+
+				if ( valid ) {
+
+					retrievedCar = retrieveCar( car->carId );
+
+					if ( retrievedCar != NULL ) {
+
+						carCopyToConditional( car, retrievedCar, mask );
+						if ( updateCar( retrievedCar ) > 0 ) {
+
+							// success
+							_sendCarResponse( socket, retrievedCar, HTTP_RC_200, HTTP_RC_200_STR );
+						}
+						else
+							_sendErrorResponse( 
+								socket,
+								ERROR_TYPE_INTERNAL_ERROR_STR,
+								ERROR_TITLE_INTERNAL_ERROR_STR,
+								HTTP_RC_500,
+								HTTP_RC_500_STR,
+								ERROR_DETAIL_INTERNAL_ERROR_STR,
+								request[ client ].path );
+
+						free( retrievedCar );
+					}
+					else
+						_sendErrorResponse( 
+							socket,
+							ERROR_TYPE_NOT_FOUND_STR,
+							ERROR_TITLE_NOT_FOUND_STR,
+							HTTP_RC_404,
+							HTTP_RC_404_STR,
+							ERROR_DETAIL_CAR_NOT_FOUND_STR,
+							request[ client ].path );
+				}
+				else
+					_sendErrorResponse( 
+						socket,
+						ERROR_TYPE_BAD_REQUEST_STR,
+						ERROR_TITLE_BAD_REQUEST_STR,
+						HTTP_RC_400,
+						HTTP_RC_400_STR,
+						ERROR_DETAIL_BAD_REQUEST_STR,
 						request[ client ].path );
 			}
 
@@ -537,6 +618,11 @@ bool _parseRequest( const char *buffer, const int client ) {
 		_populateRequest( POST_VERB, path, client );		
 		rc = true;
 	}
+	else if ( strcmp( verb, PATCH_VERB_STR ) == 0 ) {
+
+		_populateRequest( PATCH_VERB, path, client );		
+		rc = true;
+	}
 
 	return rc;
 }
@@ -634,6 +720,8 @@ char * _prettyRequestName( const int verb ) {
 			return DELETE_VERB_STR;
 		case POST_VERB:
 			return POST_VERB_STR;
+		case PATCH_VERB:
+			return PATCH_VERB_STR;
 
 		default:
 			return UNDEFINED_VERB;
