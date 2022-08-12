@@ -197,6 +197,7 @@ int main( int argc, char *argv[] ) {
 
 							// Trigger POST PUT PATCH verbs second stage procesing (JSON needed)
 							if ( request[ i ].verb == POST_VERB ||
+								request[ i ].verb == PUT_VERB ||
 								request[ i ].verb == PATCH_VERB ) {
 
 								request[ i ].ready = true;
@@ -262,6 +263,7 @@ int _executeRequest( const int client, const int socket ) {
 
 			case GET_VERB:
 			case DELETE_VERB:
+			case PUT_VERB:
 			case POST_VERB:
 			case PATCH_VERB:
 				printf( EXECUTING_REQUEST_MSG, _prettyRequestName( request[ client ].verb ) );
@@ -379,11 +381,12 @@ int _executeRequest( const int client, const int socket ) {
 			free( car );
 			break;
 
+		case PUT_VERB:
 		case PATCH_VERB:
 			carId = _parsePathForCarId( request[ client ].path );
 
 			if ( carId == 0 ) {
-				
+
 				_sendErrorResponse( 
 					socket,
 					ERROR_TYPE_BAD_REQUEST_STR,
@@ -408,7 +411,7 @@ int _executeRequest( const int client, const int socket ) {
 					request[ client ].path );
 			else {
 
-				valid = validateCar( CAR_VALIDATE_UPDATE_OPERATION, mask, car, false );
+				valid = validateCar( CAR_VALIDATE_UPDATE_OPERATION, mask, car, request[ client ].verb == PATCH_VERB ? false : true );
 
 				if ( valid ) {
 
@@ -618,6 +621,11 @@ bool _parseRequest( const char *buffer, const int client ) {
 		_populateRequest( POST_VERB, path, client );		
 		rc = true;
 	}
+	else if ( strcmp( verb, PUT_VERB_STR ) == 0 ) {
+
+		_populateRequest( PUT_VERB, path, client );		
+		rc = true;
+	}
 	else if ( strcmp( verb, PATCH_VERB_STR ) == 0 ) {
 
 		_populateRequest( PATCH_VERB, path, client );		
@@ -718,6 +726,8 @@ char * _prettyRequestName( const int verb ) {
 			return GET_VERB_STR;
 		case DELETE_VERB:
 			return DELETE_VERB_STR;
+		case PUT_VERB:
+			return PUT_VERB_STR;
 		case POST_VERB:
 			return POST_VERB_STR;
 		case PATCH_VERB:
