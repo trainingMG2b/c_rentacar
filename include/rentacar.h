@@ -31,16 +31,7 @@ struct Arguments {
 	char *jsonFileName;
 };
 
-void usage();
 void messageErr( const char * );
 void messageOut( const char * );
-
-// private functions
-void _wrongArgumentsAndQuit();
-bool _checkFileExistence( const char * );
-char * _loadJsonTextFromFile( char * );
-void _doArgumentsSanityCheck( const struct Arguments * );
-int _processObjectOperation( const struct Arguments *, char * );
-void _cleanup( char * );
 
 #endif

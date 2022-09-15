@@ -10,14 +10,20 @@
 #include "data.h"
 #include "cJSON.h"
 
-//
+
 // TODOs (as exercices):
-//    Factorize the json parsing (brand, model, ..., carId) before the operation call in a private utility finction
+//    Factorize the json parsing (brand, model, ..., carId) before the operation call in a private utility function
 //    Add comments above each function, using the WAR model : What the function does, Arguments description, Return value
 //    Add some commnents at relevant places in the code
 //    Factorize the sprintf message calls with defines and variable arguments
-//
 
+// Return a Car (object instance) constructed from json input text and while parsing sets mask to indicate
+// which fields where present in the json input
+//
+// jsonText contains the json text to be parsed
+// mask bits are filled while parsing the json to indicate which field was present in the json
+//
+// Return a pointer to a new Car structure, which should be freed later to avoid memory leak
 struct Car * parseJsonAsCar( const char * jsonText, int * mask ) {
 
     const cJSON *brand = NULL;
@@ -96,6 +102,12 @@ struct Car * parseJsonAsCar( const char * jsonText, int * mask ) {
     return car;
 }
 
+// Do a car opration (crud) based on the given json string
+//
+// operation is the one of crud
+// jsonText contains the car data to be processed
+//
+// Returns the carId (>0) or 0 on error
 int carOperation( char operation, const char * jsonText ) {
 
     int rc = 0;
@@ -222,6 +234,11 @@ int carOperation( char operation, const char * jsonText ) {
     return rc;
 }
 
+// Convert a Car to a human readable string
+//
+// car is the Car to convert
+//
+// Returns the string representation or the string "NULL" if car is null
 char * carToString( const struct Car * car ) {
 
     char * carJson = calloc( MAX_MESSAGE_LEN, sizeof( char ) );
@@ -235,6 +252,11 @@ char * carToString( const struct Car * car ) {
         return "NULL";
 }
 
+// Convert a Car to a json string
+//
+// car is the Car to convert
+//
+// Returns the json representation or the string "{ "error": 'NULL"}" if car is null
 char * carToJson( const struct Car * car ) {
 
     char * carJson = calloc( MAX_MESSAGE_LEN, sizeof( char ) );
@@ -248,6 +270,10 @@ char * carToJson( const struct Car * car ) {
         return "{ \"error\": \"NULL\" }";
 }
 
+// Copy a Car to another one. Source and destination must not be null
+//
+// source is the source Car
+// dest is the destination Car
 void carCopyTo( const struct Car * source, struct Car * dest ) {
 
     if ( source != NULL && dest != NULL ) {
@@ -261,6 +287,11 @@ void carCopyTo( const struct Car * source, struct Car * dest ) {
     }
 }
 
+// Copy some fields from a source Car to a destination Car. Source and destination must not be null
+//
+// source is the source Car
+// dest is the destination Car
+// mask is an int containing a mask of the fields to be copied (see car.h)
 void carCopyToConditional( const struct Car * source, struct Car * dest, int mask ) {
 
     if ( source != NULL && dest != NULL ) {
@@ -275,13 +306,15 @@ void carCopyToConditional( const struct Car * source, struct Car * dest, int mas
 }
 
 // Validate a Car attributes
-// This is very >>>BASIC<<< car attributes checking. In real world scenarios, brand shoul 
+// This is very >>>BASIC<<< car attributes checking. In real world scenarios, brand should 
 // be checked against a list of known brands, model from brand known models, number plate
 // shoud be checked against a regular expression (man 3 regcomp/regexec). 
 //
 // operation is either create or update
 // mask indicates which fields have been initialized (usually with a value from JSON)
 // car is the car to be validated
+//
+// Return true if the validation is OK, else return false
 bool validateCar( int operation, int mask, const struct Car * car, bool allFieldsMandatory ) {
 
     switch ( operation ) {

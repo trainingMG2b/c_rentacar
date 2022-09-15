@@ -47,6 +47,15 @@
 // Cars can not be deleted
 // Rentals records can be deleted
 
+// private functions
+static void _wrongArgumentsAndQuit();
+static bool _checkFileExistence( const char * );
+static char * _loadJsonTextFromFile( char * );
+static void _doArgumentsSanityCheck( const struct Arguments * );
+static int _processObjectOperation( const struct Arguments *, char * );
+static void _cleanup( char * );
+static void _usage();
+
 
 // Program entry point
 int _main( int argc, char *argv[] ) {
@@ -131,7 +140,7 @@ int _main( int argc, char *argv[] ) {
 }
 
 // Print program usage on standrd output
-void usage() {
+static void _usage() {
 
 	printf(
 		"Usage:\n\
@@ -171,25 +180,24 @@ void messageOut( const char *msg ) {
 	fprintf( stdout, msg );
 }
 
-//
-// private functions (should not be called outside of this file)
-//
-
 // Bad arguments, print usage and exit with related error code 
-void _wrongArgumentsAndQuit() {
+//
+static void _wrongArgumentsAndQuit() {
 	
-	usage();
+	_usage();
 	exit( EXIT_WRONG_ARGS );
 }
 
 // Check if a fileName exists
+//
 // fileName parameter is the full path to file
+//
 // Returns true if it existe, false otherwise
-bool _checkFileExistence( const char *fileName ) {
+static bool _checkFileExistence( const char *fileName ) {
 
 	FILE *fp;
 
-	fp = fopen ( fileName , "rb" );
+	fp = fopen( fileName , "rb" );
 	if ( !fp )
 		return false;
 
@@ -199,9 +207,11 @@ bool _checkFileExistence( const char *fileName ) {
 }
 
 // Do sanity checks on awaited arguments paramater
+//
 // arguments are the program arguments packed in a Arguments struccture
+//
 // Print message on standard error and quit if something went wrong
-void _doArgumentsSanityCheck( const struct Arguments *arguments ) {
+static void _doArgumentsSanityCheck( const struct Arguments *arguments ) {
 
 	if ( arguments->object == 0x00 ||
 		arguments->operation == 0x00 ||
@@ -213,9 +223,11 @@ void _doArgumentsSanityCheck( const struct Arguments *arguments ) {
 }
 
 // Load json string from file
+//
 // fileName is the name of the file containing the json text
+//
 // Returns json string from fileName parameter
-char * _loadJsonTextFromFile( char *fileName ) {
+static char * _loadJsonTextFromFile( char *fileName ) {
 
 	FILE *fp;
 	long fileSize;
@@ -254,10 +266,13 @@ char * _loadJsonTextFromFile( char *fileName ) {
 	return buffer;
 }
 
-// Do object operation 
-// based on arguments and json text parameters
+// Do object operation
+//
+// arguments is a struct containing infos about the program arguments (object, operation and json test)
+// json text contains the json needed to do the operation
+//
 // Returns id of processed object (>=1) or 0 on error
-int _processObjectOperation( const struct Arguments *args, char *jsonText ) {
+static int _processObjectOperation( const struct Arguments *args, char *jsonText ) {
 
 	int rc = 0;
 
@@ -274,8 +289,10 @@ int _processObjectOperation( const struct Arguments *args, char *jsonText ) {
 	return rc;
 }
 
-// Free previously allocated buffer argument
-void _cleanup( char * buffer ) {
+// Free previously allocated memory pointed by the buffer argument
+//
+// buffer is a pointer to the allocated memory
+static void _cleanup( char * buffer ) {
 
 	free( buffer );
 }
