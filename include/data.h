@@ -32,6 +32,4 @@ struct Car * retrieveCar( const int );
 int updateCar( const struct Car * );
 int deleteCar( int );
 
-int _getNextId();
-
 #endif

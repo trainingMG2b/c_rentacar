@@ -1,7 +1,7 @@
 #ifndef _SERVER_H
 #define _SERVER_H
 
-
+#define EXIT_WRONG_ARGS					-100
 #define EXIT_SERVER_SOCKET_ERROR		-103
 #define EXIT_SERVER_SOCKET_CONFIG_ERROR	-104
 #define EXIT_SERVER_SOCKET_BIND_ERROR	-105
@@ -24,14 +24,19 @@
 #define CNX_ABORTED_ON_UNKNOWN_VERB_ERROR   "Unknown verb error, connexion aborted"
 
 #define SERVER_UP_MESSAGE					"Rentacar Server v0.1 \r\n"
+#define LISTENING_ON_PORT_MSG				"Listener on port %d \n"
 #define SERVER_WAITING_MSG					"Waiting for connections ..." 
 #define SERVER_WELCOME_MSG_SEND				"Welcome message sent successfully"
 #define CLIENT_ADDED_TO_LIST_OF_SOCKETS_MSG	"Adding to list of sockets as %d\n"
 #define CLIENT_DISCONNECTED_MSG				"Host disconnected, ip %s, port %d \n"
 #define NEW_CLIENT_CONNECTION_INFO          "New connection, socket fd is %d, ip is : %s, port : %d\n"
 #define SEND_GREETING_ERROR                 "send greeting message error"
+#define BYE_MSG								"Bye..."
 
+#define HTTP_1_DOT_0                "HTTP/1.0"
 #define HTTP_1_DOT_1                "HTTP/1.1"
+
+#define EMPTY_STRING	""
 
 #define UNDEFINED_VERB	0
 #define GET_VERB		1
@@ -43,16 +48,24 @@
 #define MAX_VERB_LEN			16
 #define MAX_URI_PATH_LEN		128
 #define MAX_PROTOCOL_LEN		16
-#define MAX_JSON_LEN			1024
-#define MAX_DATA_READ_LEN		1024
+#define MAX_JSON_LEN			2048
+#define MAX_DATA_READ_LEN		2048
 #define MAX_HEADERS				16
 #define MAX_HEADER_NAME_LEN		64
 #define MAX_HEADER_VALUE_LEN	128
 
-#define EXECUTING_REQUEST_MSG               "executing request %s\n"
-#define WITH_JSON_MSG                       "with json = %s\n"
+#define DEBUG_VERB_MSG                      "verb = %s\n"
+#define DEBUG_PATH_MSG                      "path = %s\n"
+#define DEBUG_PROTOCOL_MSG                  "protocol = %s\n"
+#define DEBUG_HEADER_MSG                    "got header : name / value = %s / %s\n"
+#define DEBUG_BYTES_READ					"Bytes read = %s\n"
+#define DEBUG_EXECUTING_REQUEST_MSG         "executing request %s\n"
+#define DEBUG_WITH_JSON_MSG                 "with json = %s\n"
+#define DEBUG_UNKNOWN_REQUEST_MSG			"Unknown request encountered.\n"
 
 #define HEADER_NAME_VALUE_SEPARATOR         ": "
+#define HEADER_BODY_SEPARATOR				"\r\n\r\n"
+#define LINE_SEPARATOR						"\r\n"
 
 #define GET_VERB_STR        "GET"
 #define DELETE_VERB_STR     "DELETE"
@@ -60,7 +73,7 @@
 #define PUT_VERB_STR        "PUT"
 #define PATCH_VERB_STR      "PATCH"
 
-#define UNKNOWN_REQUEST_MSG "Unknown request encountered.\n"
+#define PATH_UNDEFINED		"PATH_UNDEFINED"
 
 #define HTTP_RC_200 	200
 #define HTTP_RC_201 	201
@@ -88,11 +101,6 @@
 
 #define API_PATH_GET_CAR    "/cars/%d"
 
-#define DEBUG_VERB_MSG                      "verb = %s\n"
-#define DEBUG_PATH_MSG                      "path = %s\n"
-#define DEBUG_PROTOCOL_MSG                  "protocol = %s\n"
-#define DEBUG_HEADER_MSG                    "got header : name / value = %s / %s\n"
-
 #define ERROR_TYPE_NOT_ALLOWED_STR                  "/errors/not-allowed"
 #define ERROR_TYPE_NOT_FOUND_STR                    "/errors/not-found"
 #define ERROR_TYPE_ID_ATTR_NOT_ALLOWED_STR          "/errors/id-attr-not-allowed"
@@ -113,7 +121,7 @@
 
 #define REQUEST_ERROR_RFC7807_JSON_STR "{ \"type\": \"%s\", \"title\": \"%s\", \"status\": %d, \"detail\": \"%s\", \"instance\": \"%s\" }\r\n"
 
-#define HTTP_HEADER_STR "HTTP/1.1 %d %s\r\nDate: %s\r\nServer: Rentacar Server v0.1\r\nContent-Length: %d\r\nContent-Type: application/json; charset=utf-8\r\n"
+#define HTTP_HEADER_STR "HTTP/1.0 %d %s\r\nDate: %s\r\nServer: Rentacar Server v0.1\r\nContent-Length: %d\r\nContent-Type: application/json; charset=utf-8\r\n"
 
 
 struct Header {

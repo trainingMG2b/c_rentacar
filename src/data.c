@@ -12,18 +12,24 @@
 #include "data.h"
 #include "car.h"
 
-//
+static int _getNextId();
+
 // TODOs (as exercices):
 //    factorize the strncat blocs in a private utility finction
-//    implement more control checks. e.g.: on create a new car, the numberPlate must not already exist
-//    
+//    implement more business control checks. e.g.: on create a new car, the numberPlate must not already exist
 
 // Create a new Car
-// as described by the car argument
+//
+// car is the Car to create, must not be null.
+//
 // Return the newly created carId
 int createCar( struct Car *car ) {
 
     int rc = 0;
+
+    if ( car == NULL )
+        return rc;
+
     int carId = _getNextId();
 
     car->carId = carId;
@@ -47,7 +53,9 @@ int createCar( struct Car *car ) {
 }
 
 // Retrive a car
-// using the carId argument
+//
+// carId is the Car id to retrieve
+//
 // Returns the retrieved car or NULL if not found
 struct Car * retrieveCar( const int carId ) {
 
@@ -78,7 +86,9 @@ struct Car * retrieveCar( const int carId ) {
 }
 
 // Update a car
-// as indicated in the car argument
+//
+// car is the Car to update, must not be null
+//
 // Returns the updated carId or zero if not found
 int updateCar( const struct Car *car ) {
 
@@ -87,6 +97,9 @@ int updateCar( const struct Car *car ) {
     struct Car carBuffer;
     int count = 0;
     int rc = 0;
+
+    if ( car == NULL )
+        return rc;
 
     strncat( fileName, DATA_HOME_DIR, MAX_PATH_LEN - 1 );
     strncat( fileName, PATH_SEP, MAX_PATH_LEN - sizeof( DATA_HOME_DIR ) - 1 );
@@ -117,7 +130,9 @@ int updateCar( const struct Car *car ) {
 }
 
 // Delete a car (WARNING: In the specs, a car cannot be deleted, see comments in the file containing the main function...)
-// as indicated by the carId argument
+//
+// carId is the id of the Car to delete
+//
 // returns the deleted carId or zero if not found
 int deleteCar( int carId ) {
 
@@ -147,8 +162,9 @@ int deleteCar( int carId ) {
 }
 
 // Get the next available id
+//
 // Returns the next id
-int _getNextId() {
+static int _getNextId() {
 
     int rc = 0;
     char fileName[ MAX_PATH_LEN ] = { 0 };

@@ -25,7 +25,7 @@
             // "args": [ "-C", "-u", "${workspaceFolder}/json/car/updatecar_4.json" ],
             // "args": [ "-C", "-d", "${workspaceFolder}/json/car/deletecar_byid_4.json" ],
             // "args": [ "--car", "--retrieve", "${workspaceFolder}/json/car/retrievecar_byid_2.json" ],
-            "args": [ "not_used_yet" ],
+            "args": [ "-d" ],
             "stopAtEntry": false,
             // "cwd": "${fileDirname}",
             "cwd": "${workspaceFolder}",
