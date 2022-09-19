@@ -1,8 +1,8 @@
 # exclude object files
 obj/*.o
 # exclude library files
-obj/*.o
-# exclude binary program
+lib/*.o
+# exclude binary programs
 rentacar
 rentacar.exe
 server
